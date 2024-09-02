@@ -267,7 +267,6 @@ class CWS_Ninja_Forms_Submissions_Events {
             return $image_editor;
         }
 
-
         // Get the current dimensions
         $current_size = $image_editor->get_size();
         $current_width = $current_size['width'];
