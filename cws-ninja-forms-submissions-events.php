@@ -99,11 +99,11 @@ class CWS_Ninja_Forms_Submissions_Events {
                 "$custom_ticket_url_field"        => $this->decode_url($formAttributes[$ticket_field]) ?? '',
             ];
 
-            
+
             $args = $this->filter_arguments($args);
             $event_id = tribe_events()->set_args($args)->create()->ID;
 
-           return $event_id;
+            return $event_id;
         }
     }
 
@@ -268,6 +268,7 @@ class CWS_Ninja_Forms_Submissions_Events {
             return $image_editor;
         }
 
+
         // Get the current dimensions
         $current_size = $image_editor->get_size();
         $current_width = $current_size['width'];
@@ -278,6 +279,24 @@ class CWS_Ninja_Forms_Submissions_Events {
 
         // Resize the image
         $image_editor->resize($new_width, $new_height, false);
+
+
+        ############ change file type #######################
+        $file_info = pathinfo($image_path);
+        $extension = strtolower($file_info['extension']);
+        $new_extension = $extension;
+
+        if ($extension === 'png') {
+            $image_path = $file_info['dirname'] . '/' . $file_info['filename'] . '.' . 'jpg';
+        }
+
+        //test
+        $text = 'Image $image_path : ' . json_encode($image_path);
+        $this->write_error_log($text);
+        //end test
+        ############ change file type #######################
+
+
         $saved_image = $image_editor->save($image_path);
 
         if (is_wp_error($saved_image)) {
@@ -289,6 +308,60 @@ class CWS_Ninja_Forms_Submissions_Events {
         wp_update_attachment_metadata($image_id, $attach_data);
 
         return $image_id;
+    }
+
+    private function get_image_editor($image_path) {
+        $image_editor = wp_get_image_editor($image_path);
+        return $image_editor;
+    }
+
+    private function resize_image($image_editor) {
+        $new_width = self::IMAGE_SIZE;
+
+        // Get the current dimensions
+        $current_size = $image_editor->get_size();
+        $current_width = $current_size['width'];
+        $current_height = $current_size['height'];
+
+        // Calculate the new height to maintain aspect ratio
+        $new_height = ($new_width / $current_width) * $current_height;
+
+        // Resize the image
+        $image_editor->resize($new_width, $new_height, false);
+    }
+
+    private function save_image($image_id, $image_editor, $image_path) {
+        // Check if the image is a PNG, then convert it to JPG
+        $image_mime = $image_editor->get_mime_type();
+
+        //test
+        $text = 'Image mine : ' . $image_mime;
+        $this->write_error_log($text);
+        //end test
+
+        if ($image_mime === 'image/png') {
+            // Set the new image path with a .jpg extension
+            $new_image_path = preg_replace('/\.png$/i', '.jpg', $image_path);
+
+            // Save the image as JPG
+            $saved_image = $image_editor->save($new_image_path, 'image/jpeg');
+
+            // Update the attachment file path
+            update_attached_file($image_id, $new_image_path);
+
+            return $new_image_path;
+        } else {
+            // Save the image in the original format
+            $saved_image = $image_editor->save($image_path);
+
+            return $image_path;
+        }
+    }
+
+    private function update_image_metadata($image_id, $image_path) {
+        // Regenerate the image metadata to update WordPress with the new dimensions and file path
+        $attach_data = wp_generate_attachment_metadata($image_id, $image_path);
+        wp_update_attachment_metadata($image_id, $attach_data);
     }
 
     private function get_image_id_from_url($image_url) {

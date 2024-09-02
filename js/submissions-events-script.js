@@ -9,7 +9,7 @@ jQuery(document).on('nfFormReady', function () {
     }
 
     const minDate = new Date();
-    const maxDate = new Date().fp_incr(30);
+    const maxDate = new Date().fp_incr(365);
 
     const startPicker = $startDatePicker[0]._flatpickr;
     const endPicker = $endDatePicker[0]._flatpickr;
