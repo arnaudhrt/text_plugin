@@ -7,7 +7,7 @@ jQuery(document).on('nfFormReady', function () {
     if (!$startDatePicker.length || !$endDatePicker.length) {
         return;
     }
-    
+
     const minDate = new Date();
     const maxDate = new Date().fp_incr(365);
     const startPicker = $startDatePicker[0]._flatpickr;
@@ -27,3 +27,6 @@ jQuery(document).on('nfFormReady', function () {
         }
     });
 });
+
+
+

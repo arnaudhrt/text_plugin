@@ -272,8 +272,6 @@ class CWS_Ninja_Forms_Submissions_Events {
         $current_size = $image_editor->get_size();
         $current_width = $current_size['width'];
         $current_height = $current_size['height'];
-
-        // Calculate the new height to maintain aspect ratio
         $new_height = ($new_width / $current_width) * $current_height;
 
         // Resize the image
