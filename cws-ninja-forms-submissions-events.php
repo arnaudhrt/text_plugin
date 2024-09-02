@@ -120,6 +120,7 @@ class CWS_Ninja_Forms_Submissions_Events {
         return $url;
     }
 
+
     /**
      * @param array $args
      * @return array
@@ -238,8 +239,6 @@ class CWS_Ninja_Forms_Submissions_Events {
         $end_hour = $formAttributes[$date_time_end_field]['hour'];
         $end_minute = $formAttributes[$date_time_end_field]['minute'];
         $end_date_time = DateTime::createFromFormat('l, F d Y H i', "$end_date_string $end_hour $end_minute");
-//        $end_date_time->modify('+1 day');
-//        $end_date_time->setTime(3, 30);
         $end_date = $end_date_time->format('Y-m-d H:i:s');
 
         return array(
