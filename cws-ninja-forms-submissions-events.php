@@ -286,10 +286,6 @@ class CWS_Ninja_Forms_Submissions_Events {
             $image_path = $file_info['dirname'] . '/' . $file_info['filename'] . '.' . 'jpg';
         }
 
-        //test
-        $text = 'Image $image_path : ' . json_encode($image_path);
-        $this->write_error_log($text);
-        //end test
         ############ change file type #######################
 
 
@@ -330,10 +326,6 @@ class CWS_Ninja_Forms_Submissions_Events {
         // Check if the image is a PNG, then convert it to JPG
         $image_mime = $image_editor->get_mime_type();
 
-        //test
-        $text = 'Image mine : ' . $image_mime;
-        $this->write_error_log($text);
-        //end test
 
         if ($image_mime === 'image/png') {
             // Set the new image path with a .jpg extension
