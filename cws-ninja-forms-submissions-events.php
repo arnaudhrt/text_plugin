@@ -30,11 +30,11 @@ class CWS_Ninja_Forms_Submissions_Events {
         }
 
         // Get the latest release from GitHub API (no token required for public repos)
-        $response = wp_remote_get('https://github.com/arnaudhrt/text_plugin.git', array(
-            'headers' => array(
-                'User-Agent' => 'WordPress Plugin Updater' // GitHub requires this header
-            )
-        ));
+       $response = wp_remote_get('https://api.github.com/repos/arnaudhrt/text_plugin/releases/latest', array(
+    'headers' => array(
+        'User-Agent' => 'WordPress Plugin Updater' // GitHub requires this header
+    )
+));
 
         if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
             return $transient; // Bail if the request fails
