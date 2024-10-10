@@ -35,7 +35,11 @@ class CWS_Ninja_Forms_Admin_Settings {
             </form>
         </div>
         <?php
+        
     }
+       public function page_init() {
+        echo 'Hello World';
+       }
 
     public function page_init() {
         // General Data Section
