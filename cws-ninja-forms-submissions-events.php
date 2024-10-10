@@ -3,16 +3,13 @@
  * Plugin Name: CWS Ninja Forms Submissions Events
  * Plugin URI: https://www.crazywebstudio.co.th
  * Description: Retrieve NinjaForms submissions and post them as Events with a Draft status.
- * Version: 1.0.2
+ * Version: 1.0.7
  * Author: Crazy Web Studio
  * Author URI: https://www.crazywebstudio.co.th
  * Text Domain: crazywebstudio-ninja-forms-submissions-events
  *
  * Copyright 2024 Crazy Web Studio
 */
-
-define('GITHUB_TOKEN', 'your_github_token');
-
 
 class CWS_Ninja_Forms_Submissions_Events {
 
@@ -33,7 +30,7 @@ class CWS_Ninja_Forms_Submissions_Events {
         }
 
         // Get the latest release from GitHub API (no token required for public repos)
-        $response = wp_remote_get('https://api.github.com/repos/your-username/your-plugin-repo/releases/latest', array(
+        $response = wp_remote_get('https://github.com/arnaudhrt/text_plugin.git', array(
             'headers' => array(
                 'User-Agent' => 'WordPress Plugin Updater' // GitHub requires this header
             )
