@@ -9,14 +9,16 @@
  * Text Domain: crazywebstudio-ninja-forms-submissions-events
  *
  * Copyright 2024 Crazy Web Studio
-*/
+ */
 
-class CWS_Ninja_Forms_Submissions_Events {
+class CWS_Ninja_Forms_Submissions_Events
+{
 
     const IMAGE_SIZE = 1080;
     const EXCERPT = 120;
 
-    public function __construct() {
+    public function __construct()
+    {
         add_action('ninja_forms_after_submission', [$this, 'log_ninja_form_submission']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
 
@@ -24,52 +26,63 @@ class CWS_Ninja_Forms_Submissions_Events {
 
     }
 
-public function check_for_plugin_update($transient) {
-    if (empty($transient->checked)) {
+    public function check_for_plugin_update($transient)
+    {
+        if (empty($transient->checked)) {
+            return $transient;
+        }
+
+        // Get the latest release from GitHub API (no token required for public repos)
+        $response = wp_remote_get('https://api.github.com/repos/arnaudhrt/text_plugin/releases/latest', array(
+            'headers' => array(
+                'User-Agent' => 'WordPress Plugin Updater' // GitHub requires this header
+            )
+        ));
+
+        if (is_wp_error($response)) {
+            error_log('GitHub API request failed: ' . $response->get_error_message());
+            return $transient;
+        }
+
+        $response_code = wp_remote_retrieve_response_code($response);
+        if ($response_code !== 200) {
+            error_log('GitHub API returned unexpected response code: ' . $response_code);
+            return $transient;
+        }
+
+        $release_data = json_decode(wp_remote_retrieve_body($response));
+        error_log('GitHub release data: ' . print_r($release_data, true));
+
+        // Get the current plugin version from the header
+        $current_version = get_file_data(__FILE__, array('Version' => 'Version'))['Version'];
+
+        // Compare the current plugin version with the GitHub release tag
+        if (version_compare($release_data->tag_name, $current_version, '>')) {
+            $transient->response[plugin_basename(__FILE__)] = (object) [
+                'slug' => 'crazywebstudio-ninja-forms-submissions-events',
+                'new_version' => $release_data->tag_name,
+                'package' => $release_data->zipball_url,
+                'url' => $release_data->html_url
+            ];
+        }
+
         return $transient;
     }
 
-    // Get the latest release from GitHub API (no token required for public repos)
-    $response = wp_remote_get('https://api.github.com/repos/arnaudhrt/text_plugin/releases/latest', array(
-        'headers' => array(
-            'User-Agent' => 'WordPress Plugin Updater' // GitHub requires this header
-        )
-    ));
-
-    if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
-        return $transient; // Bail if the request fails
-    }
-
-    $release_data = json_decode(wp_remote_retrieve_body($response));
-
-    // Get the current plugin version from the header
-    $current_version = get_file_data(__FILE__, array('Version' => 'Version'))['Version'];
-
-    // Compare the current plugin version with the GitHub release tag
-    if (version_compare($release_data->tag_name, $current_version, '>')) {
-        $transient->response[plugin_basename(__FILE__)] = (object) [
-            'slug'        => 'crazywebstudio-ninja-forms-submissions-events',
-            'new_version' => $release_data->tag_name,
-            'package'     => $release_data->zipball_url,
-            'url'         => $release_data->html_url
-        ];
-    }
-
-    return $transient;
-}
-
-    public function enqueue_scripts() {
+    public function enqueue_scripts()
+    {
         $current_version = get_file_data(__FILE__, array('Version' => 'Version'))['Version'];
-       wp_enqueue_script(
-    'submissions-events-script',
-    plugin_dir_url(__FILE__) . 'js/submissions-events-script.js',
-    [],
-    $current_version, // Use the plugin version
-    true // Load in footer
-);
+        wp_enqueue_script(
+            'submissions-events-script',
+            plugin_dir_url(__FILE__) . 'js/submissions-events-script.js',
+            [],
+            $current_version, // Use the plugin version
+            true // Load in footer
+        );
     }
 
-    public function log_ninja_form_submission($form_data) {
+    public function log_ninja_form_submission($form_data)
+    {
         $form_id = self::get_option_by_name('form_id');
         if ($form_data['form_id'] == $form_id) {
             $attributes = array();
@@ -83,7 +96,8 @@ public function check_for_plugin_update($transient) {
         }
     }
 
-    private function create_new_event(array $formAttributes) {
+    private function create_new_event(array $formAttributes)
+    {
 
 
         if (function_exists('tribe_events')) {
@@ -94,7 +108,7 @@ public function check_for_plugin_update($transient) {
 
             $date = $this->get_start_end_time($formAttributes);
             $organizers = self::get_option_by_name('organizer');
-            $organizers_array = ($organizers) ? explode(',', $organizers ) : [];
+            $organizers_array = ($organizers) ? explode(',', $organizers) : [];
             $title_field = self::get_option_by_name('title') ?? 'event_name';
             $description_field = self::get_option_by_name('description') ?? 'event_description';
             $venue_field = self::get_option_by_name('venue') ?? 'event_location';
@@ -105,8 +119,8 @@ public function check_for_plugin_update($transient) {
             $ticket_field = self::get_option_by_name('ticket_url') ?? 'ticket_url';
             $book_field = self::get_option_by_name('booking_url') ?? 'booking_url';
 
-            $description_content = html_entity_decode( $formAttributes[$description_field] ?? '', ENT_QUOTES | ENT_HTML5);
-            $about_content = html_entity_decode( $formAttributes[$about_field] ?? '', ENT_QUOTES | ENT_HTML5);
+            $description_content = html_entity_decode($formAttributes[$description_field] ?? '', ENT_QUOTES | ENT_HTML5);
+            $about_content = html_entity_decode($formAttributes[$about_field] ?? '', ENT_QUOTES | ENT_HTML5);
 
             /** This is varibles for set Custom fields name */
             $custom_ticket_url_field = self::get_option_by_name('custom_ticket_url') ?? 'ticket_url';
@@ -115,26 +129,26 @@ public function check_for_plugin_update($transient) {
 
             // Event
             $args = [
-                'title'             => $formAttributes[$title_field] ?? '',
-                'start_date'        => $date['start_date'], // Format: ‘YYYY-MM-DD HH:MM:SS’
-                'end_date'          => $date['end_date'],
-                'cost'              => $formAttributes[$cost_field],
-//                'currency_symbol'   => '$',
+                'title' => $formAttributes[$title_field] ?? '',
+                'start_date' => $date['start_date'], // Format: ‘YYYY-MM-DD HH:MM:SS’
+                'end_date' => $date['end_date'],
+                'cost' => $formAttributes[$cost_field],
+                //                'currency_symbol'   => '$',
 //                'currency_position' => 'prefix',
-                'description'       => $description_content,
-//                'url'               => $formAttributes['ticket_url'] ?? '',
+                'description' => $description_content,
+                //                'url'               => $formAttributes['ticket_url'] ?? '',
 //                'tag'               => ['concert'],
 //                'category'          => [2],
 //                'featured'          => 'yes',
-                'excerpt'           => $this->excerpt_content( $description_content ) ?? '',
-                'image'             => $this->resize_image_by_width_with_date($image) ?? 0, // The event featured image ID or URL
-                'organizer'         => $organizers_array,
-                'venue'             => $this->get_venue_id($formAttributes[$venue_field]),
+                'excerpt' => $this->excerpt_content($description_content) ?? '',
+                'image' => $this->resize_image_by_width_with_date($image) ?? 0, // The event featured image ID or URL
+                'organizer' => $organizers_array,
+                'venue' => $this->get_venue_id($formAttributes[$venue_field]),
 
                 //This came from Custom fields
-                "$custom_about_field"             => $about_content,
-                "$custom_booking_url_field"       => $this->decode_url($formAttributes[$book_field]) ?? '',
-                "$custom_ticket_url_field"        => $this->decode_url($formAttributes[$ticket_field]) ?? '',
+                "$custom_about_field" => $about_content,
+                "$custom_booking_url_field" => $this->decode_url($formAttributes[$book_field]) ?? '',
+                "$custom_ticket_url_field" => $this->decode_url($formAttributes[$ticket_field]) ?? '',
             ];
 
 
@@ -165,7 +179,7 @@ public function check_for_plugin_update($transient) {
      */
     private function filter_arguments(array $args)
     {
-        return array_filter($args, function($value) {
+        return array_filter($args, function ($value) {
             return $value !== null && $value !== false && $value !== '';
         });
 
@@ -177,12 +191,12 @@ public function check_for_plugin_update($transient) {
      */
     private function excerpt_content($content)
     {
-        if($content){
+        if ($content) {
             $sentences = $this->explode_by_delimiters($content);
             $excerpt = $sentences[0] ?? null;
 
             for ($count = 1; $count < count($sentences) && strlen($excerpt) < self::EXCERPT; $count++) {
-                $excerpt .= " ".$sentences[$count];
+                $excerpt .= " " . $sentences[$count];
             }
             return $excerpt;
         }
@@ -193,7 +207,8 @@ public function check_for_plugin_update($transient) {
      * @param $string
      * @return array|false|string[]
      */
-    private function explode_by_delimiters($string) {
+    private function explode_by_delimiters($string)
+    {
         $delimiters = ["\n\n", "<br>"];
         $regexPattern = '/' . implode('|', array_map('preg_quote', $delimiters)) . '/';
         return preg_split($regexPattern, $string);
@@ -244,7 +259,7 @@ public function check_for_plugin_update($transient) {
         /* Ger Venue Default in case no setting */
         $venue_id = empty($venue_id) ? $this->get_venue_default($venues) : $venue_id;
 
-        return (int)$venue_id;
+        return (int) $venue_id;
     }
 
     /**
@@ -259,7 +274,8 @@ public function check_for_plugin_update($transient) {
         return 0;
     }
 
-    private function get_start_end_time($formAttributes) {
+    private function get_start_end_time($formAttributes)
+    {
 
         $date_time_field = self::get_option_by_name('date_time') ?? 'event_date_time';
         $date_time_end_field = self::get_option_by_name('date_time_end') ?? 'event_end_date_time';
@@ -281,11 +297,12 @@ public function check_for_plugin_update($transient) {
 
         return array(
             'start_date' => $start_date,
-            'end_date'   => $end_date
+            'end_date' => $end_date
         );
     }
 
-    private function resize_image_by_width_with_date($image_url) {
+    private function resize_image_by_width_with_date($image_url)
+    {
 
         $image_id = $this->get_image_id_from_url($image_url);
 
@@ -340,12 +357,14 @@ public function check_for_plugin_update($transient) {
         return $image_id;
     }
 
-    private function get_image_editor($image_path) {
+    private function get_image_editor($image_path)
+    {
         $image_editor = wp_get_image_editor($image_path);
         return $image_editor;
     }
 
-    private function resize_image($image_editor) {
+    private function resize_image($image_editor)
+    {
         $new_width = self::IMAGE_SIZE;
 
         // Get the current dimensions
@@ -360,7 +379,8 @@ public function check_for_plugin_update($transient) {
         $image_editor->resize($new_width, $new_height, false);
     }
 
-    private function save_image($image_id, $image_editor, $image_path) {
+    private function save_image($image_id, $image_editor, $image_path)
+    {
         // Check if the image is a PNG, then convert it to JPG
         $image_mime = $image_editor->get_mime_type();
 
@@ -384,13 +404,15 @@ public function check_for_plugin_update($transient) {
         }
     }
 
-    private function update_image_metadata($image_id, $image_path) {
+    private function update_image_metadata($image_id, $image_path)
+    {
         // Regenerate the image metadata to update WordPress with the new dimensions and file path
         $attach_data = wp_generate_attachment_metadata($image_id, $image_path);
         wp_update_attachment_metadata($image_id, $attach_data);
     }
 
-    private function get_image_id_from_url($image_url) {
+    private function get_image_id_from_url($image_url)
+    {
         try {
             if ($this->is_valid_url($image_url)) {
                 global $wpdb;
@@ -407,12 +429,14 @@ public function check_for_plugin_update($transient) {
     }
 
 
-    private function is_valid_url($image_url) {
+    private function is_valid_url($image_url)
+    {
         return filter_var($image_url, FILTER_VALIDATE_URL) !== false;
     }
 
-    private function write_error_log($error) {
-        error_log($error.'\n', 3, plugin_dir_path(__FILE__) . 'ninja_forms_log.txt');
+    private function write_error_log($error)
+    {
+        error_log($error . '\n', 3, plugin_dir_path(__FILE__) . 'ninja_forms_log.txt');
     }
 }
 
