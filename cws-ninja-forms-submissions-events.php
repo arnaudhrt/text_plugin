@@ -32,13 +32,11 @@ class CWS_Ninja_Forms_Submissions_Events
             return $transient;
         }
 
-        // Get the latest release from GitHub API (no token required for public repos)
-        $response = wp_remote_get('https://api.github.com/repos/arnaudhrt/text_plugin/releases/latest', array(
-            'headers' => array(
-                'User-Agent' => 'WordPress Plugin Updater',
-                'Authorization' => 'token YOUR_PERSONAL_ACCESS_TOKEN' // GitHub requires this header
-            )
-        ));
+        $url = 'https://api.github.com/repos/arnaudhrt/text_plugin/releases/latest';
+        $headers = array(
+            'User-Agent' => 'WordPress Plugin Updater',
+            'Authorization' => 'token YOUR_PERSONAL_ACCESS_TOKEN' // GitHub requires this header
+        );
 
         // Log the request details
         error_log('GitHub API Request URL: ' . $url);
@@ -55,13 +53,17 @@ class CWS_Ninja_Forms_Submissions_Events
         }
 
         $response_code = wp_remote_retrieve_response_code($response);
+        error_log('GitHub API Response Code: ' . $response_code);
+
         if ($response_code !== 200) {
             error_log('GitHub API returned unexpected response code: ' . $response_code);
+            error_log('GitHub API Response Body: ' . wp_remote_retrieve_body($response));
             return $transient;
         }
 
         $release_data = json_decode(wp_remote_retrieve_body($response));
         error_log('GitHub release data: ' . print_r($release_data, true));
+
         // Get the current plugin version from the header
         $current_version = get_file_data(__FILE__, array('Version' => 'Version'))['Version'];
 
@@ -77,7 +79,6 @@ class CWS_Ninja_Forms_Submissions_Events
 
         return $transient;
     }
-
     public function enqueue_scripts()
     {
         $current_version = get_file_data(__FILE__, array('Version' => 'Version'))['Version'];
