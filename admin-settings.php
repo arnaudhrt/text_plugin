@@ -38,7 +38,7 @@ class CWS_Ninja_Forms_Admin_Settings {
         
     }
        public function page_init() {
-        echo 'Hello World';
+        echo 'Hello Worlrevrevrevd';
        }
 
     public function page_init() {
