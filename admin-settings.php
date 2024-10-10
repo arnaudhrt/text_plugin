@@ -37,9 +37,6 @@ class CWS_Ninja_Forms_Admin_Settings {
         <?php
         
     }
-       public function page_init() {
-        echo 'Hello Worlrevrevrevd';
-       }
 
     public function page_init() {
         // General Data Section
