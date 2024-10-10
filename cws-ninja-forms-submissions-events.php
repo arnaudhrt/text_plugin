@@ -11,6 +11,9 @@
  * Copyright 2024 Crazy Web Studio
 */
 
+define('GITHUB_TOKEN', 'your_github_token');
+
+
 class CWS_Ninja_Forms_Submissions_Events {
 
     const IMAGE_SIZE = 1080;
@@ -19,6 +22,40 @@ class CWS_Ninja_Forms_Submissions_Events {
     public function __construct() {
         add_action('ninja_forms_after_submission', [$this, 'log_ninja_form_submission']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
+
+        add_filter('site_transient_update_plugins', [$this, 'check_for_plugin_update']);
+
+    }
+
+    public function check_for_plugin_update($transient) {
+        if (empty($transient->checked)) {
+            return $transient;
+        }
+
+        // Get the latest release from GitHub API (no token required for public repos)
+        $response = wp_remote_get('https://api.github.com/repos/your-username/your-plugin-repo/releases/latest', array(
+            'headers' => array(
+                'User-Agent' => 'WordPress Plugin Updater' // GitHub requires this header
+            )
+        ));
+
+        if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
+            return $transient; // Bail if the request fails
+        }
+
+        $release_data = json_decode(wp_remote_retrieve_body($response));
+
+        // Compare the current plugin version with the GitHub release tag
+        if (version_compare($release_data->tag_name, '1.0.2', '>')) { // Use your current plugin version
+            $transient->response[plugin_basename(__FILE__)] = (object) [
+                'slug'        => 'crazywebstudio-ninja-forms-submissions-events',
+                'new_version' => $release_data->tag_name,
+                'package'     => $release_data->zipball_url,
+                'url'         => $release_data->html_url
+            ];
+        }
+
+        return $transient;
     }
 
     public function enqueue_scripts() {

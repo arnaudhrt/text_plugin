@@ -339,3 +339,4 @@ if (is_admin()) {
     new CWS_Ninja_Forms_Admin_Settings();
 }
 
+
