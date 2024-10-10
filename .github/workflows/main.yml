@@ -26,10 +26,9 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.sha }} # Create release using the commit SHA
-          name: Release ${{ github.sha }}
-          body: |
-            Release notes for commit ${{ github.sha }}
+          tag_name: ${{ github.ref }} # This will use the correct tag (e.g., 'v1.0.5')
+          name: Release ${{ github.ref }}
+          body: Release notes for ${{ github.ref }}
           files: plugin.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Use GitHub Token for authentication
