@@ -66,15 +66,18 @@ class CWS_Ninja_Forms_Submissions_Events
 
         // Get the current plugin version from the header
         $current_version = get_file_data(__FILE__, array('Version' => 'Version'))['Version'];
+        $github_version = ltrim($release_data->tag_name, 'v'); // Remove 'v' prefix if present
 
-        // Compare the current plugin version with the GitHub release tag
-        if (version_compare($release_data->tag_name, $current_version, '>')) {
+        error_log('Current plugin version: ' . $current_version);
+        error_log('GitHub release version: ' . $github_version);
+
+        if (version_compare($github_version, $current_version, '>')) {
             $plugin_slug = 'text_plugin-main/cws-ninja-forms-submissions-events.php'; // Use the correct plugin slug
             error_log('Updating plugin: ' . $plugin_slug);
 
             $transient->response[$plugin_slug] = (object) [
                 'slug' => 'text_plugin-main',
-                'new_version' => $release_data->tag_name,
+                'new_version' => $github_version,
                 'package' => $release_data->zipball_url,
                 'url' => $release_data->html_url
             ];
