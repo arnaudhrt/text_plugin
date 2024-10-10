@@ -35,7 +35,8 @@ class CWS_Ninja_Forms_Submissions_Events
         // Get the latest release from GitHub API (no token required for public repos)
         $response = wp_remote_get('https://api.github.com/repos/arnaudhrt/text_plugin/releases/latest', array(
             'headers' => array(
-                'User-Agent' => 'WordPress Plugin Updater' // GitHub requires this header
+                'User-Agent' => 'WordPress Plugin Updater',
+                'Authorization' => 'token YOUR_PERSONAL_ACCESS_TOKEN' // GitHub requires this header
             )
         ));
 
