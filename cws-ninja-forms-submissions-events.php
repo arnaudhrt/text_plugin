@@ -3,7 +3,7 @@
  * Plugin Name: CWS Ninja Forms Submissions Events
  * Plugin URI: https://www.crazywebstudio.co.th
  * Description: Retrieve NinjaForms submissions and post them as Events with a Draft status.
- * Version: 1.0.18
+ * Version: 1.2.0
  * Author: Crazy Web Studio
  * Author URI: https://www.crazywebstudio.co.th
  * Text Domain: crazywebstudio-ninja-forms-submissions-events
@@ -21,9 +21,7 @@ class CWS_Ninja_Forms_Submissions_Events
     {
         add_action('ninja_forms_after_submission', [$this, 'log_ninja_form_submission']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
-
         add_filter('site_transient_update_plugins', [$this, 'check_for_plugin_update']);
-
     }
 
     public function check_for_plugin_update($transient)
@@ -32,61 +30,40 @@ class CWS_Ninja_Forms_Submissions_Events
             return $transient;
         }
 
-        $url = 'https://api.github.com/repos/arnaudhrt/text_plugin/releases/latest';
+        $url = 'https://api.github.com/repos/arnaudhrt/text_plugin/releases/latest'; // https://api.github.com/repos/(github_user)/(repo_name)/releases/latest
         $headers = array(
             'User-Agent' => 'WordPress Plugin Updater',
-            'Authorization' => 'token YOUR_PERSONAL_ACCESS_TOKEN' // GitHub requires this header
+            'Authorization' => 'token YOUR_PERSONAL_ACCESS_TOKEN' // ex: 'token 23fvdf97zez64236vve42fdvd42'
         );
-
-        // Log the request details
-        error_log('GitHub API Request URL: ' . $url);
-        error_log('GitHub API Request Headers: ' . print_r($headers, true));
 
         $response = wp_remote_get($url, array('headers' => $headers));
 
-        // Log the full response
-        error_log('GitHub API Response: ' . print_r($response, true));
-
         if (is_wp_error($response)) {
-            error_log('GitHub API request failed: ' . $response->get_error_message());
             return $transient;
         }
 
         $response_code = wp_remote_retrieve_response_code($response);
-        error_log('GitHub API Response Code: ' . $response_code);
 
         if ($response_code !== 200) {
-            error_log('GitHub API returned unexpected response code: ' . $response_code);
-            error_log('GitHub API Response Body: ' . wp_remote_retrieve_body($response));
             return $transient;
         }
 
         $release_data = json_decode(wp_remote_retrieve_body($response));
-        error_log('GitHub release data: ' . print_r($release_data, true));
-
-        // Get the current plugin version from the header
         $current_version = get_file_data(__FILE__, array('Version' => 'Version'))['Version'];
-        $github_version = ltrim($release_data->tag_name, 'v'); // Remove 'v' prefix if present
-
-        error_log('Current plugin version: ' . $current_version);
-        error_log('GitHub release version: ' . $github_version);
+        $github_version = ltrim($release_data->tag_name, 'v');
 
         if (version_compare($github_version, $current_version, '>')) {
-            $plugin_slug = 'text_plugin-main/cws-ninja-forms-submissions-events.php'; // Use the correct plugin slug
-            error_log('Updating plugin: ' . $plugin_slug);
-
+            $plugin_slug = 'text_plugin-main/cws-ninja-forms-submissions-events.php'; // plugin_folder_name/plugin_main_file_name.php   
             $transient->response[$plugin_slug] = (object) [
-                'slug' => 'text_plugin-main',
+                'slug' => 'text_plugin-main', // plugin_folder_name
                 'new_version' => $github_version,
                 'package' => $release_data->zipball_url,
                 'url' => $release_data->html_url
             ];
-        } else {
-            error_log('No update needed');
         }
-
         return $transient;
     }
+
     public function enqueue_scripts()
     {
         $current_version = get_file_data(__FILE__, array('Version' => 'Version'))['Version'];
