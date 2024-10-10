@@ -3,12 +3,12 @@
  * Plugin Name: CWS Ninja Forms Submissions Events
  * Plugin URI: https://www.crazywebstudio.co.th
  * Description: Retrieve NinjaForms submissions and post them as Events with a Draft status.
- * Version: 1.0.7
+ * Version: 1.0.8
  * Author: Crazy Web Studio
  * Author URI: https://www.crazywebstudio.co.th
  * Text Domain: crazywebstudio-ninja-forms-submissions-events
  *
- * Copyright 2024 Crazy Web Studio test version
+ * Copyright 2024 Crazy Web Studio
 */
 
 class CWS_Ninja_Forms_Submissions_Events {
