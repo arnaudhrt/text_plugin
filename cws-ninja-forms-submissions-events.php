@@ -8,7 +8,7 @@
  * Author URI: https://www.crazywebstudio.co.th
  * Text Domain: crazywebstudio-ninja-forms-submissions-events
  *
- * Copyright 2024 Crazy Web Studio
+ * Copyright 2024 Crazy Web Studio 13
  */
 
 class CWS_Ninja_Forms_Submissions_Events
