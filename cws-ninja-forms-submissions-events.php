@@ -24,45 +24,49 @@ class CWS_Ninja_Forms_Submissions_Events {
 
     }
 
-    public function check_for_plugin_update($transient) {
-        if (empty($transient->checked)) {
-            return $transient;
-        }
-
-        // Get the latest release from GitHub API (no token required for public repos)
-       $response = wp_remote_get('https://api.github.com/repos/arnaudhrt/text_plugin/releases/latest', array(
-    'headers' => array(
-        'User-Agent' => 'WordPress Plugin Updater' // GitHub requires this header
-    )
-));
-
-        if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
-            return $transient; // Bail if the request fails
-        }
-
-        $release_data = json_decode(wp_remote_retrieve_body($response));
-
-        // Compare the current plugin version with the GitHub release tag
-        if (version_compare($release_data->tag_name, '1.0.2', '>')) { // Use your current plugin version
-            $transient->response[plugin_basename(__FILE__)] = (object) [
-                'slug'        => 'crazywebstudio-ninja-forms-submissions-events',
-                'new_version' => $release_data->tag_name,
-                'package'     => $release_data->zipball_url,
-                'url'         => $release_data->html_url
-            ];
-        }
-
+public function check_for_plugin_update($transient) {
+    if (empty($transient->checked)) {
         return $transient;
     }
 
+    // Get the latest release from GitHub API (no token required for public repos)
+    $response = wp_remote_get('https://api.github.com/repos/arnaudhrt/text_plugin/releases/latest', array(
+        'headers' => array(
+            'User-Agent' => 'WordPress Plugin Updater' // GitHub requires this header
+        )
+    ));
+
+    if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
+        return $transient; // Bail if the request fails
+    }
+
+    $release_data = json_decode(wp_remote_retrieve_body($response));
+
+    // Get the current plugin version from the header
+    $current_version = get_file_data(__FILE__, array('Version' => 'Version'))['Version'];
+
+    // Compare the current plugin version with the GitHub release tag
+    if (version_compare($release_data->tag_name, $current_version, '>')) {
+        $transient->response[plugin_basename(__FILE__)] = (object) [
+            'slug'        => 'crazywebstudio-ninja-forms-submissions-events',
+            'new_version' => $release_data->tag_name,
+            'package'     => $release_data->zipball_url,
+            'url'         => $release_data->html_url
+        ];
+    }
+
+    return $transient;
+}
+
     public function enqueue_scripts() {
-        wp_enqueue_script(
-            'submissions-events-script',
-            plugin_dir_url(__FILE__) . 'js/submissions-events-script.js',
-            [],
-            '1.0.0',
-            true // Load in footer
-        );
+        $current_version = get_file_data(__FILE__, array('Version' => 'Version'))['Version'];
+       wp_enqueue_script(
+    'submissions-events-script',
+    plugin_dir_url(__FILE__) . 'js/submissions-events-script.js',
+    [],
+    $current_version, // Use the plugin version
+    true // Load in footer
+);
     }
 
     public function log_ninja_form_submission($form_data) {
